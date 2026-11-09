@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bühnenkompass Berlin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* === SECTION: Tokens === */
+:root{
+  --bg:#0e0e0c; --surface:#1a1a17; --surface-2:#252521; --border:#77756c; --line:#3a3a34;
+  --text:#f5f3ee; --muted:#b0ada4;
+  --accent:#f2a08a; --on-accent:#0e0e0c; --accent-text:#f2a08a; --focus:#f2a08a; --sel-border:#f2a08a;
+  --radius:14px; --font:'Inter',system-ui,-apple-system,sans-serif;
+  --display:'Bricolage Grotesque','Inter',system-ui,sans-serif;
+  --t:.2s ease;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f3f0e8; --surface:#ffffff; --surface-2:#e9e5da; --border:#7d7868; --line:#c9c4b6;
+    --text:#12120f; --muted:#52504a; --accent:#a8324f; --on-accent:#ffffff; --accent-text:#8f2943; --focus:#12120f; --sel-border:#a8324f;
+  }
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important;scroll-behavior:auto!important} }
+
+/* === SECTION: Base === */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font:400 1rem/1.55 var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-text);text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:8px;background:var(--accent);color:var(--on-accent);padding:10px 14px;border-radius:8px;z-index:20}
+.skip:focus{left:8px}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+svg.ph{width:1.25em;height:1.25em;fill:currentColor;flex:none}
+
+/* === SECTION: Nav === */
+header{position:sticky;top:10px;z-index:10;margin:10px 12px 0;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:margin .25s ease,border-radius .25s ease,top .25s ease}
+header.full{top:0;margin:0;border-radius:0;border-width:0 0 1px 0}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px}
+header:not(.full) .bar{padding:0 8px 0 16px}
+.logo{display:inline-flex;align-items:center;min-height:44px;font:800 1.05rem/1 var(--display);letter-spacing:-.02em;color:var(--text);text-decoration:none}
+.logo span{background:var(--accent);color:var(--on-accent);padding:2px 6px;border-radius:4px;margin-left:2px}
+.burger{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:48px;min-height:48px;padding:0 14px;border-radius:999px;border:2px solid var(--border);background:transparent;color:var(--text);font:600 .92rem var(--font);cursor:pointer}
+.burger[aria-expanded="true"]{background:var(--text);border-color:var(--text);color:var(--bg)}
+.burger .ico-close{display:none}
+.burger[aria-expanded="true"] .ico-open{display:none}
+.burger[aria-expanded="true"] .ico-close{display:block}
+.mainnav{position:absolute;left:0;right:0;top:calc(100% + 1px);background:var(--bg);border-bottom:1px solid var(--line);padding:8px 20px 20px;box-shadow:0 18px 30px -18px rgb(0 0 0 / .45)}
+.mainnav[hidden]{display:none}
+.mainnav ul{list-style:none;max-width:760px;margin:0 auto}
+.mainnav li{border-top:1px solid var(--line)}
+.mainnav li:first-child{border-top:0}
+.mainnav a{display:flex;align-items:center;justify-content:space-between;min-height:60px;color:var(--text);text-decoration:none;font:800 clamp(1.6rem,8vw,2.2rem)/1 var(--display);letter-spacing:-.03em}
+.mainnav a[aria-current="page"]{color:var(--accent-text)}
+.mainnav a[aria-current="page"]::after{content:'';width:12px;height:12px;border-radius:50%;background:var(--accent)}
+@media (min-width:760px){
+  .burger{display:none}
+  .mainnav,.mainnav[hidden]{display:block;position:static;background:transparent;border:0;padding:0;box-shadow:none}
+  .mainnav ul{display:flex;gap:4px;margin:0}
+  .mainnav li{border:0}
+  .mainnav a{min-height:44px;padding:0 14px;border-radius:999px;font:600 .92rem var(--font);letter-spacing:0;color:var(--muted)}
+  .mainnav a[aria-current="page"]{background:var(--text);color:var(--bg)}
+  .mainnav a[aria-current="page"]::after{display:none}
+}
+
+/* === SECTION: Views === */
+main{padding:28px 0 64px}
+section[data-view]{display:none}
+section[data-view].on{display:block}
+
+/* Start */
+.hero{position:relative;padding:12px 0 8px}
+.hero h1{font:800 clamp(3.4rem,17vw,8.5rem)/.86 var(--display);letter-spacing:-.05em}
+.hero h1 .hl{display:inline-block;background:var(--accent);color:var(--on-accent);padding:0 .08em;transform:rotate(-2deg);margin-top:.06em}
+.hero .tag{position:absolute;right:0;top:0;font:500 .8rem/1.3 var(--font);color:var(--muted);text-align:right;max-width:9.5rem}
+.lead{font-size:1.12rem;max-width:34rem;margin:26px 0 28px}
+.how{display:grid;gap:10px;margin:0 0 32px;list-style:none;counter-reset:s}
+.how li{counter-increment:s;display:flex;gap:14px;align-items:baseline;padding:14px 0;border-top:1px solid var(--line)}
+.how li::before{content:counter(s);font:800 1.6rem/1 var(--display);color:var(--accent-text);min-width:1.4rem}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 22px;border-radius:999px;border:2px solid var(--text);background:transparent;color:var(--text);font:600 1rem var(--font);cursor:pointer;text-decoration:none;transition:transform var(--t),background var(--t)}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--accent);border-color:var(--sel-border);color:var(--on-accent)}
+.btn.ghost{border-color:var(--border);color:var(--muted)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+
+/* Quiz */
+.progress{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--muted);margin-bottom:10px}
+.track{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-bottom:34px}
+.track i{display:block;height:100%;background:var(--accent);transition:width .35s ease}
+fieldset{border:0}
+legend{font:800 clamp(2rem,8.5vw,3.6rem)/1 var(--display);letter-spacing:-.035em;margin-bottom:10px}
+.hint{color:var(--muted);margin-bottom:24px}
+.opts{display:grid;gap:10px;margin-bottom:30px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;cursor:pointer;margin:0}
+.opt label{display:flex;align-items:center;min-height:60px;padding:14px 18px;border:2px solid var(--border);border-radius:var(--radius);background:var(--surface);font-weight:500;font-size:1.05rem;transition:border-color var(--t),background var(--t),color var(--t)}
+.opt input:focus-visible + label{outline:3px solid var(--focus);outline-offset:3px}
+.opt input:checked + label{border-color:var(--sel-border);background:var(--accent);color:var(--on-accent);font-weight:700}
+.opt input:checked + label::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--on-accent);margin-left:auto;flex:none}
+.seg .opt input:checked + label::after{display:none}
+
+/* Profil */
+.kicker{font:600 .78rem/1 var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+h2{font:800 clamp(2.2rem,10vw,4.4rem)/.92 var(--display);letter-spacing:-.04em;margin-bottom:18px}
+h3{font:800 1.5rem/1.05 var(--display);letter-spacing:-.02em}
+.summary{font-size:1.1rem;margin-bottom:26px;max-width:36rem}
+.dims{display:grid;gap:14px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px}
+.dim label{display:flex;justify-content:space-between;font-weight:500;font-size:.95rem;margin-bottom:4px}
+.dim output{color:var(--muted);font-size:.85rem}
+input[type=range]{width:100%;height:44px;background:transparent;accent-color:var(--sel-border);cursor:pointer}
+.note{font-size:.88rem;color:var(--muted);margin-bottom:40px}
+
+.list{display:grid;gap:14px;list-style:none;margin-bottom:22px}
+.card{position:relative;padding:22px 20px 20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.card .rank{position:absolute;right:-6px;top:-22px;font:800 6.5rem/1 var(--display);color:var(--surface-2);letter-spacing:-.06em;pointer-events:none;user-select:none}
+.card > *{position:relative}
+.card .meta{font-size:.85rem;color:var(--muted);margin:4px 0 12px}
+.fit{display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:600;margin-bottom:12px}
+.fit .m{flex:1;max-width:140px;height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.fit .m i{display:block;height:100%;background:var(--accent)}
+.card p{margin-bottom:12px}
+.why{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin-bottom:14px}
+.why li{font-size:.82rem;padding:5px 10px;border-radius:99px;border:1px solid var(--border);color:var(--text)}
+.ext{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-weight:600}
+.card.wild{border:2px dashed var(--sel-border)}
+.wild-tag{display:inline-block;background:var(--accent);color:var(--on-accent);font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:4px;margin-bottom:10px}
+.more{padding:20px;border-top:1px solid var(--line);margin-top:10px}
+
+/* Tagebuch */
+form.log{display:grid;gap:16px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:28px}
+.f label,.f .lbl{display:block;font-weight:600;font-size:.95rem;margin-bottom:6px}
+select,input[type=text]{width:100%;min-height:48px;padding:0 14px;border-radius:10px;border:2px solid var(--border);background:var(--bg);color:var(--text);font:400 1rem var(--font)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seg .opt label{min-height:48px;justify-content:center;text-align:center;font-size:.92rem;padding:8px}
+.entries{list-style:none;display:grid;gap:0}
+.entries li{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-top:1px solid var(--line)}
+.entries .v{font-size:.85rem;font-weight:600;white-space:nowrap}
+.empty{color:var(--muted);padding:14px 0;border-top:1px solid var(--line)}
+.status{min-height:1.5em;font-weight:500;color:var(--accent-text)}
+
+/* Spielplan */
+.filters{display:grid;gap:16px;margin-bottom:18px}
+.lbl{display:block;font-weight:600;font-size:.95rem;margin-bottom:6px}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.chip label{display:flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--border);font-weight:600;font-size:.92rem}
+.chip input:checked + label{background:var(--accent);border-color:var(--sel-border);color:var(--on-accent)}
+.chip input:focus-visible + label{outline:3px solid var(--focus);outline-offset:3px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hchip{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 6px 0 16px;border-radius:999px;background:var(--surface-2);font-weight:600;font-size:.92rem}
+.hchip button{min-width:44px;min-height:44px;border:0;background:transparent;color:var(--text);font:600 .9rem var(--font);cursor:pointer;border-radius:999px;text-decoration:underline;text-underline-offset:3px}
+.plan{list-style:none;display:grid;gap:12px;margin-bottom:10px}
+.ev{display:grid;grid-template-columns:72px 1fr;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.ev .date{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border-radius:10px;background:var(--surface-2);text-align:center;line-height:1.1;align-self:start}
+.ev .date b{font:800 1.9rem/1 var(--display);letter-spacing:-.03em}
+.ev .date span{font-size:.78rem;font-weight:600;color:var(--muted)}
+.ev .date.run b{font-size:1rem}
+.ev h3{font-size:1.15rem;margin-bottom:2px}
+.ev .meta{font-size:.85rem;color:var(--muted);margin:2px 0 8px}
+.ev p{font-size:.95rem;margin-bottom:8px}
+.ev .fit{margin-bottom:8px}
+.links{display:flex;flex-wrap:wrap;gap:4px 18px}
+.planlink{display:inline-flex;align-items:center;min-height:44px;font-weight:600;font-size:.92rem}
+footer{border-top:1px solid var(--line);padding:22px 0 40px;font-size:.82rem;color:var(--muted)}
+@media (min-width:700px){
+  .opts.two{grid-template-columns:1fr 1fr}
+  .list{grid-template-columns:1fr 1fr}
+  .list .card:first-child{grid-column:1 / -1}
+}
+
+/* === SECTION: Header-Steuerung (Sprache, Burger) === */
+.hdr-r{display:flex;align-items:center;gap:8px}
+.burger{padding:0;width:48px;gap:0}
+.langsw{display:inline-flex;border:2px solid var(--border);border-radius:999px;padding:0;overflow:hidden}
+.langsw button{min-width:44px;min-height:44px;padding:0 10px;border:0;background:transparent;color:var(--muted);font:700 .85rem var(--font);letter-spacing:.04em;cursor:pointer}
+.langsw button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+.langsw button:focus-visible{outline-offset:-4px}
+@media (min-width:760px){ .hdr-r{gap:14px} }
+</style>
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="skip">Zum Inhalt springen</a>
+<header id="top">
+  <div class="wrap bar">
+    <a class="logo" href="#start">Bühnen<span>kompass</span></a>
+    <div class="hdr-r">
+      <nav class="mainnav" id="mainnav" data-i18n-aria="nav.label" aria-label="Hauptnavigation" hidden>
+        <ul>
+          <li><a href="#quiz" data-nav="quiz" data-i18n="nav.quiz">Test</a></li>
+          <li><a href="#profil" data-nav="profil" data-i18n="nav.profil">Profil</a></li>
+          <li><a href="#spielplan" data-nav="spielplan" data-i18n="nav.spielplan">Spielplan</a></li>
+          <li><a href="#tagebuch" data-nav="tagebuch" data-i18n="nav.tagebuch">Tagebuch</a></li>
+        </ul>
+      </nav>
+      <div class="langsw" role="group" data-i18n-aria="lang.label" aria-label="Sprache">
+        <button type="button" data-lang="de" lang="de" aria-label="Deutsch" aria-pressed="true">DE</button>
+        <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
+      </div>
+      <button class="burger" type="button" id="burger" aria-expanded="false" aria-controls="mainnav" aria-label="Menü öffnen">
+        <svg class="ph ico-open" viewBox="0 0 256 256" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"/></svg>
+        <svg class="ph ico-close" viewBox="0 0 256 256" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <div class="wrap">
+
+    <!-- === VIEW: Start === -->
+    <section data-view="start" aria-labelledby="h-start">
+      <div class="hero">
+        <p class="tag" data-i18n="start.tag"></p>
+        <h1 id="h-start" data-i18n-html="start.h1"></h1>
+      </div>
+      <p class="lead" data-i18n="start.lead"></p>
+      <ol class="how">
+        <li data-i18n="start.how1"></li>
+        <li data-i18n="start.how2"></li>
+        <li data-i18n="start.how3"></li>
+      </ol>
+      <div class="row">
+        <a class="btn primary" href="#quiz" id="startBtn"><span data-i18n="start.cta"></span> <svg class="ph" viewBox="0 0 256 256" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></a>
+        <a class="btn ghost" href="#profil" id="toProfile" hidden data-i18n="start.toProfile"></a>
+      </div>
+    </section>
+
+    <!-- === VIEW: Quiz === -->
+    <section data-view="quiz" aria-labelledby="q-legend">
+      <div class="progress"><span id="qCount" aria-live="polite"></span><button class="btn ghost" type="button" id="qSkip" style="min-height:44px;padding:0 14px" data-i18n="quiz.skip"></button></div>
+      <div class="track" aria-hidden="true"><i id="qBar"></i></div>
+      <form id="qForm">
+        <fieldset>
+          <legend id="q-legend"></legend>
+          <p class="hint" id="qHint"></p>
+          <div class="opts" id="qOpts"></div>
+        </fieldset>
+        <div class="row">
+          <button class="btn ghost" type="button" id="qBack"><svg class="ph" viewBox="0 0 256 256" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg> <span data-i18n="quiz.back"></span></button>
+          <button class="btn primary" type="submit" id="qNext" disabled><span id="qNextLabel"></span> <svg class="ph" viewBox="0 0 256 256" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></button>
+        </div>
+      </form>
+    </section>
+
+    <!-- === VIEW: Profil === -->
+    <section data-view="profil" aria-labelledby="h-profil">
+      <div id="noProfile" hidden>
+        <h2 data-i18n="prof.none.h"></h2>
+        <p class="summary" data-i18n="prof.none.p"></p>
+        <a class="btn primary" href="#quiz" data-i18n="start.cta"></a>
+      </div>
+      <div id="hasProfile">
+        <p class="kicker" data-i18n="prof.kicker"></p>
+        <h2 id="h-profil"></h2>
+        <p class="summary" id="pSummary"></p>
+        <div class="dims" id="dims" role="group" data-i18n-aria="prof.dims"></div>
+        <p class="note" data-i18n="prof.note"></p>
+        <p class="kicker" data-i18n="prof.recs"></p>
+        <h3 class="sr-only" data-i18n="prof.recsSr"></h3>
+        <ol class="list" id="recs"></ol>
+        <div id="wild"></div>
+        <div class="more">
+          <p style="margin-bottom:10px" data-i18n="prof.bb.p"></p>
+          <a class="ext" href="https://www.berlin-buehnen.de/de/" target="_blank" rel="noopener"><span data-i18n="prof.bb.a"></span> <svg class="ph" viewBox="0 0 256 256" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg><span class="sr-only" data-i18n="newWin"></span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- === VIEW: Spielplan === -->
+    <section data-view="spielplan" aria-labelledby="h-plan">
+      <p class="kicker" id="planStand"></p>
+      <h2 id="h-plan" data-i18n="plan.h"></h2>
+      <p class="summary" id="planIntro"></p>
+      <div class="filters" role="group" data-i18n-aria="plan.filter">
+        <fieldset class="chips">
+          <legend class="lbl" data-i18n="plan.range"></legend>
+          <div class="chiprow">
+            <span class="chip"><input type="radio" name="range" id="r7" value="7"><label for="r7" data-i18n="plan.r7"></label></span>
+            <span class="chip"><input type="radio" name="range" id="r28" value="28" checked><label for="r28" data-i18n="plan.r28"></label></span>
+            <span class="chip"><input type="radio" name="range" id="r0" value="0"><label for="r0" data-i18n="plan.r0"></label></span>
+          </div>
+        </fieldset>
+        <div class="f2">
+          <div class="f">
+            <label for="pTyp" data-i18n="plan.typ"></label>
+            <select id="pTyp">
+              <option value="" data-i18n="plan.typAll"></option>
+              <option value="schauspiel" data-i18n="typ.schauspiel"></option>
+              <option value="oper" data-i18n="typ.oper"></option>
+              <option value="tanz" data-i18n="typ.tanz"></option>
+              <option value="musical,show" data-i18n="plan.typShow"></option>
+              <option value="kabarett" data-i18n="typ.kabarett"></option>
+              <option value="performance,figuren" data-i18n="plan.typPerf"></option>
+              <option value="gespraech" data-i18n="typ.gespraech"></option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="pSort" data-i18n="plan.sort"></label>
+            <select id="pSort">
+              <option value="fit" data-i18n="plan.sortFit"></option>
+              <option value="date" data-i18n="plan.sortDate"></option>
+            </select>
+          </div>
+        </div>
+        <div id="houseChip"></div>
+      </div>
+      <p class="status" id="planCount" role="status"></p>
+      <ol class="plan" id="planList"></ol>
+      <div class="more" id="planGaps"></div>
+    </section>
+
+    <!-- === VIEW: Tagebuch === -->
+    <section data-view="tagebuch" aria-labelledby="h-log">
+      <p class="kicker" data-i18n="log.kicker"></p>
+      <h2 id="h-log" data-i18n="log.h"></h2>
+      <p class="summary" data-i18n="log.p"></p>
+      <form class="log" id="logForm" novalidate>
+        <div class="f">
+          <label for="lHouse" data-i18n="log.house"></label>
+          <select id="lHouse" required></select>
+        </div>
+        <div class="f">
+          <label for="lTitle"><span data-i18n="log.title"></span> <span style="color:var(--muted);font-weight:400" data-i18n="log.optional"></span></label>
+          <input type="text" id="lTitle" autocomplete="off">
+        </div>
+        <fieldset class="f">
+          <legend class="lbl" data-i18n="log.how"></legend>
+          <div class="seg">
+            <div class="opt"><input type="radio" name="verdict" id="v1" value="1" required><label for="v1" data-i18n="log.v1"></label></div>
+            <div class="opt"><input type="radio" name="verdict" id="v0" value="0"><label for="v0" data-i18n="log.v0"></label></div>
+            <div class="opt"><input type="radio" name="verdict" id="vm" value="-1"><label for="vm" data-i18n="log.vm"></label></div>
+          </div>
+        </fieldset>
+        <button class="btn primary" type="submit" data-i18n="log.submit"></button>
+        <p class="status" id="logStatus" role="status"></p>
+      </form>
+      <h3 style="margin-bottom:6px" data-i18n="log.sofar"></h3>
+      <ul class="entries" id="entries"></ul>
+      <div class="row" style="margin-top:28px">
+        <button class="btn ghost" type="button" id="resetAll"></button>
+      </div>
+      <p class="status" id="resetStatus" role="status"></p>
+    </section>
+
+  </div>
+</main>
+<footer><div class="wrap" data-i18n="footer"></div></footer>
+
+<script src="spielplan.js"></script>
+<script>
+/* === SECTION: Config === */
+const CONFIG = {
+  dims: [
+    {k:'wort',     l:{de:'Text & Schauspiel', en:'Text & acting'},            lo:{de:'wenig Text', en:'little text'},          hi:{de:'Text im Zentrum', en:'text at the centre'}},
+    {k:'musik',    l:{de:'Musik & Gesang', en:'Music & singing'},             lo:{de:'ohne Musik', en:'no music'},             hi:{de:'Musik trägt', en:'music-driven'}},
+    {k:'koerper',  l:{de:'Tanz & Körper', en:'Dance & movement'},             lo:{de:'wenig Bewegung', en:'little movement'},  hi:{de:'Körper im Zentrum', en:'body at the centre'}},
+    {k:'lachen',   l:{de:'Humor & Leichtigkeit', en:'Humour & lightness'},    lo:{de:'ernst', en:'serious'},                   hi:{de:'leicht & komisch', en:'light & funny'}},
+    {k:'politik',  l:{de:'Politik & Gesellschaft', en:'Politics & society'},  lo:{de:'unpolitisch', en:'apolitical'},          hi:{de:'politisch', en:'political'}},
+    {k:'radikal',  l:{de:'Experiment & Bruch', en:'Experiment & rupture'},    lo:{de:'klassisch', en:'classic'},               hi:{de:'experimentell', en:'experimental'}},
+    {k:'spektakel',l:{de:'Größe & Opulenz', en:'Scale & spectacle'},          lo:{de:'intim, klein', en:'intimate, small'},    hi:{de:'groß, opulent', en:'big, lavish'}}
+  ],
+  // v: wort, musik, koerper, lachen, politik, radikal, spektakel (0–1)
+  houses: [
+    {id:'schaubuehne', n:'Schaubühne', ort:'Charlottenburg', typ:{de:'Sprechtheater', en:'Drama'}, url:'https://www.schaubuehne.de', v:[.9,.2,.3,.3,.8,.6,.6],
+      d:{de:'Zeitgenössisches Regietheater mit starkem Ensemble, viel Live-Video und aufwendigen Bühnenbildern. Klassiker und neue Stücke, meist mit gesellschaftlichem Bezug.', en:'Contemporary director’s theatre with a strong ensemble, lots of live video and elaborate sets. Classics and new plays, usually with a social angle.'}},
+    {id:'gorki', n:'Maxim Gorki Theater', ort:'Mitte', typ:{de:'Sprechtheater', en:'Drama'}, url:'https://www.gorki.de', v:[.8,.3,.4,.5,.95,.65,.5],
+      d:{de:'Kleinstes Staatstheater der Stadt, divers besetzt, laut und politisch. Themen wie Migration, Identität und Herkunft. Vorstellungen laufen mit englischen Übertiteln.', en:'The city’s smallest state theatre: diverse casts, loud and political. Migration, identity and belonging. Performances run with English surtitles.'}},
+    {id:'dt', n:'Deutsches Theater', ort:'Mitte', typ:{de:'Sprechtheater', en:'Drama'}, url:'https://www.deutschestheater.de', v:[.9,.2,.2,.35,.6,.4,.55],
+      d:{de:'Großes Schauspielhaus mit Klassikern und Gegenwartsdramatik. Stark auf Text und Schauspiel ausgerichtet, Regie eher zugänglich als radikal.', en:'Large drama house for classics and contemporary plays. Focused on text and acting, with direction that is more accessible than radical.'}},
+    {id:'be', n:'Berliner Ensemble', ort:'Mitte', typ:{de:'Sprechtheater', en:'Drama'}, url:'https://www.berliner-ensemble.de', v:[.85,.4,.2,.45,.55,.35,.65],
+      d:{de:'Das Brecht-Haus am Schiffbauerdamm. Klassiker, bekannte Regienamen und Schauspielstars, oft mit Musik. Guter Einstieg ins große Sprechtheater.', en:'Brecht’s house on Schiffbauerdamm. Classics, well-known directors and star actors, often with music. A good way into big-stage drama.'}},
+    {id:'volksbuehne', n:'Volksbühne', ort:'Mitte', typ:{de:'Theater & Performance', en:'Theatre & performance'}, url:'https://www.volksbuehne.berlin', v:[.6,.35,.6,.45,.8,.95,.6],
+      d:{de:'Das experimentierfreudigste große Haus der Stadt. Seit der Spielzeit 2026/27 unter Matthias Lilienthal, mit deutlich mehr Tanz und Performance im Programm.', en:'The most experimental of the city’s big houses. Led by Matthias Lilienthal since the 2026/27 season, with far more dance and performance.'}},
+    {id:'hau', n:'HAU Hebbel am Ufer', ort:'Kreuzberg', typ:{de:'Performance & Tanz', en:'Performance & dance'}, url:'https://www.hebbel-am-ufer.de', v:[.4,.35,.7,.35,.75,.95,.3],
+      d:{de:'Drei Bühnen für die internationale freie Szene: Performance, Tanz, Diskurs. Viel auf Englisch oder übertitelt, oft formal ungewöhnlich.', en:'Three stages for the international independent scene: performance, dance, talks. Much of it in English or surtitled, often formally unusual.'}},
+    {id:'sophiensaele', n:'Sophiensæle', ort:'Mitte', typ:{de:'Freie Szene', en:'Independent scene'}, url:'https://www.sophiensaele.com', v:[.4,.3,.7,.3,.7,.95,.2],
+      d:{de:'Produktionshaus der freien Berliner Szene in einem alten Handwerkervereinshaus. Junge Positionen, Performance, Tanz, kleine Räume.', en:'Production house for Berlin’s independent scene in a former craftsmen’s club. Young voices, performance, dance, small rooms.'}},
+    {id:'naunyn', n:'Ballhaus Naunynstraße', ort:'Kreuzberg', typ:{de:'Sprechtheater', en:'Drama'}, url:'https://www.ballhausnaunynstrasse.de', v:[.75,.3,.4,.4,.9,.6,.15],
+      d:{de:'Kleines Haus, Keimzelle des postmigrantischen Theaters. Nah dran, politisch, viele Uraufführungen.', en:'A small house where post-migrant theatre began. Up close, political, many premieres.'}},
+    {id:'komische', n:'Komische Oper', ort:'Charlottenburg (Schillertheater)', typ:{de:'Oper, Operette, Musical', en:'Opera, operetta, musical'}, url:'https://www.komische-oper-berlin.de', v:[.2,.95,.4,.7,.35,.55,.85],
+      d:{de:'Musiktheater ohne Ehrfurcht: Oper, Operette und Musical, oft verspielt und opulent. Spielt während der Sanierung im Schillertheater und an wechselnden Orten.', en:'Music theatre without the reverence: opera, operetta and musicals, often playful and lavish. Plays at the Schillertheater and other venues during renovation.'}},
+    {id:'staatsoper', n:'Staatsoper Unter den Linden', ort:'Mitte', typ:{de:'Oper', en:'Opera'}, url:'https://www.staatsoper-berlin.de', v:[.1,1,.2,.2,.3,.35,.9],
+      d:{de:'Große Oper im historischen Haus Unter den Linden. Repertoire von Barock bis Moderne, Inszenierungen eher klassisch-opulent.', en:'Grand opera in the historic house on Unter den Linden. Baroque to modern repertoire, mostly classic and lavish productions.'}},
+    {id:'dob', n:'Deutsche Oper Berlin', ort:'Charlottenburg', typ:{de:'Oper', en:'Opera'}, url:'https://www.deutscheoperberlin.de', v:[.1,1,.2,.15,.35,.45,.9],
+      d:{de:'Größtes Opernhaus der Stadt, stark bei Wagner, Verdi und Strauss. Großer Saal, großer Klang.', en:'The city’s largest opera house, strong on Wagner, Verdi and Strauss. Big hall, big sound.'}},
+    {id:'staatsballett', n:'Staatsballett Berlin', ort:'Staatsoper, Deutsche Oper, Komische Oper', typ:{de:'Ballett & Tanz', en:'Ballet & dance'}, url:'https://www.staatsballett-berlin.de', v:[0,.6,1,.2,.2,.4,.8],
+      d:{de:'Klassisches Ballett und zeitgenössischer Tanz auf den großen Opernbühnen. Kommt komplett ohne Sprache aus.', en:'Classical ballet and contemporary dance on the big opera stages. No language needed at all.'}},
+    {id:'radialsystem', n:'Radialsystem', ort:'Friedrichshain', typ:{de:'Tanz & Musik', en:'Dance & music'}, url:'https://www.radialsystem.de', v:[.2,.7,.8,.25,.4,.7,.35],
+      d:{de:'Altes Pumpwerk an der Spree. Tanz, Konzert und Formate dazwischen, oft genreübergreifend.', en:'A former pumping station on the Spree. Dance, concerts and formats in between, often crossing genres.'}},
+    {id:'palast', n:'Friedrichstadt-Palast', ort:'Mitte', typ:{de:'Revue', en:'Revue'}, url:'https://www.palast.berlin', v:[0,.7,.85,.6,.05,.15,1],
+      d:{de:'Grand-Show-Revue auf einer der größten Bühnen der Welt: Kostüme, Ensemble-Tanz, Effekte. Reine Schauwerte.', en:'Grand revue on one of the world’s largest stages: costumes, ensemble dance, effects. Pure spectacle.'}},
+    {id:'chamaeleon', n:'Chamäleon', ort:'Mitte (Hackesche Höfe)', typ:{de:'Zeitgenössischer Zirkus', en:'Contemporary circus'}, url:'https://www.chamaeleonberlin.com', v:[.05,.5,.95,.6,.15,.5,.5],
+      d:{de:'Zeitgenössischer Zirkus im historischen Saal: Akrobatik mit Erzählung und Atmosphäre statt Manegen-Nummernrevue.', en:'Contemporary circus in a historic hall: acrobatics with story and atmosphere rather than a ring of separate acts.'}},
+    {id:'wintergarten', n:'Wintergarten Varieté', ort:'Schöneberg', typ:{de:'Varieté', en:'Variety'}, url:'https://www.wintergarten-berlin.de', v:[.05,.6,.85,.75,.05,.1,.7],
+      d:{de:'Klassisches Varieté mit Artistik, Musik und Comedy. Leicht, glamourös, ein Abend zum Abschalten.', en:'Classic variety with acrobatics, music and comedy. Light, glamorous, an evening to switch off.'}},
+    {id:'bjv', n:'Bar jeder Vernunft', ort:'Wilmersdorf', typ:{de:'Kabarett & Chanson', en:'Cabaret & chanson'}, url:'https://www.bar-jeder-vernunft.de', v:[.5,.75,.2,.9,.35,.25,.3],
+      d:{de:'Spiegelzelt mit Chanson, Kabarett und kleinen Musicals. Nah an der Bühne, viel Witz, viel Musik.', en:'A mirror tent for chanson, cabaret and small musicals. Close to the stage, lots of wit, lots of music.'}},
+    {id:'wuehlmaeuse', n:'Die Wühlmäuse', ort:'Westend', typ:{de:'Kabarett & Comedy', en:'Cabaret & comedy'}, url:'https://www.wuehlmaeuse.de', v:[.7,.2,.1,.95,.6,.15,.25],
+      d:{de:'Kabarett- und Comedy-Bühne. Pointen, Satire, Gastspiele bekannter Namen.', en:'Cabaret and comedy stage. Punchlines, satire, guest shows by well-known names. Mostly in German.'}},
+    {id:'renaissance', n:'Renaissance-Theater', ort:'Charlottenburg', typ:{de:'Sprechtheater', en:'Drama'}, url:'https://www.renaissance-theater.de', v:[.9,.15,.1,.6,.35,.15,.45],
+      d:{de:'Privattheater im Art-déco-Saal. Gut gebaute Stücke, oft mit bekannten Schauspieler:innen, klar erzählt.', en:'Private theatre in an Art Deco hall. Well-made plays, often with well-known actors, clearly told.'}},
+    {id:'etb', n:'English Theatre Berlin', ort:'Kreuzberg', typ:{de:'Theater auf Englisch', en:'Theatre in English'}, url:'https://www.etberlin.de', v:[.8,.2,.3,.45,.6,.55,.2],
+      d:{de:'Internationales Haus mit Produktionen und Gastspielen auf Englisch. Kleiner Saal, freie Szene.', en:'International house with productions and guest shows in English. Small hall, independent scene.'}},
+    {id:'nko', n:'Neuköllner Oper', ort:'Neukölln', typ:{de:'Musiktheater', en:'Music theatre'}, url:'https://www.neukoellneroper.de', v:[.4,.85,.3,.65,.65,.6,.3],
+      d:{de:'Freies Musiktheater mit eigenen neuen Stücken: Musical, Oper, Pop, oft mit Bezug zur Stadt und zur Gegenwart.', en:'Independent music theatre making its own new work: musical, opera, pop, often about the city and the present.'}},
+    {id:'bka', n:'BKA Theater', ort:'Kreuzberg', typ:{de:'Kabarett & Show', en:'Cabaret & show'}, url:'https://www.bka-theater.de', v:[.4,.6,.3,.9,.5,.5,.3],
+      d:{de:'Kabarett, Drag, Musik und queere Bühnenkunst. Schräg, frech, nah am Publikum.', en:'Cabaret, drag, music and queer stage art. Offbeat, cheeky, close to the audience.'}},
+    {id:'schaubude', n:'Schaubude Berlin', ort:'Prenzlauer Berg', typ:{de:'Puppen- & Objekttheater', en:'Puppet & object theatre'}, url:'https://www.schaubude.berlin', v:[.3,.3,.5,.4,.4,.8,.15],
+      d:{de:'Puppen-, Figuren- und Objekttheater, viel davon für Erwachsene. Bildstark, poetisch, oft ohne viel Sprache.', en:'Puppet, figure and object theatre, much of it for adults. Visual, poetic, often with little language.'}},
+    {id:'tdw', n:'Theater des Westens', ort:'Charlottenburg', typ:{de:'Musical', en:'Musical'}, url:'https://www.stage-entertainment.de', v:[.2,.95,.6,.6,.05,.05,.95],
+      d:{de:'Großes Musicalhaus (Stage Entertainment) mit langlaufenden Produktionen. Bekannte Stoffe, großer Aufwand.', en:'Large musical theatre (Stage Entertainment) with long-running shows. Familiar stories, big production values.'}}
+  ],
+  quiz: [
+    {q:{de:'Nach dem Theater willst du …', en:'After the show you want to …'}, h:{de:'Was soll der Abend mit dir machen?', en:'What should the evening do for you?'}, o:[
+      [{de:'noch lange darüber reden', en:'keep talking about it for hours'}, {politik:.3, radikal:.1, lachen:-.15}],
+      [{de:'beschwingt nach Hause gehen', en:'walk home in a good mood'}, {lachen:.3, politik:-.15, spektakel:.1}],
+      [{de:'kann beides sein', en:'could be either'}, {}]]},
+    {q:{de:'Was trägt dich durch einen Abend?', en:'What carries you through an evening?'}, h:{de:'Bauchgefühl reicht.', en:'Go with your gut.'}, o:[
+      [{de:'Sprache, die sitzt', en:'Words that land'}, {wort:.35, musik:-.1, koerper:-.1}],
+      [{de:'Musik, die mich packt', en:'Music that grabs me'}, {musik:.35, wort:-.1}],
+      [{de:'Körper, die sich bewegen', en:'Bodies in motion'}, {koerper:.35, wort:-.15}],
+      [{de:'Weiß ich nicht', en:'I don’t know'}, {}]]},
+    {q:{de:'Ein Klassiker, Shakespeare oder Tschechow. Lieber …', en:'A classic, Shakespeare or Chekhov. You’d rather see it …'}, h:{de:'', en:''}, o:[
+      [{de:'so nah am Original wie möglich', en:'as close to the original as possible'}, {radikal:-.3, wort:.1}],
+      [{de:'neu gedacht, aber erkennbar', en:'rethought, but recognisable'}, {radikal:.1}],
+      [{de:'zerlegt und neu gebaut', en:'taken apart and rebuilt'}, {radikal:.35}]]},
+    {q:{de:'Der Raum', en:'The room'}, h:{de:'Wo fühlst du dich wohler?', en:'Where do you feel more at home?'}, o:[
+      [{de:'Kleiner Saal, zwei Meter vor mir', en:'Small room, two metres away'}, {spektakel:-.3}],
+      [{de:'Großes Haus, große Bilder', en:'Big house, big images'}, {spektakel:.3}],
+      [{de:'Egal', en:'Doesn’t matter'}, {}]]},
+    {q:{de:'Laut, nackt, das Publikum wird angesprochen.', en:'Loud, naked, the audience gets addressed.'}, h:{de:'Wie reagierst du?', en:'How do you react?'}, o:[
+      [{de:'Her damit', en:'Bring it on'}, {radikal:.25, politik:.1}],
+      [{de:'Okay, wenn es einen Grund hat', en:'Fine, if there’s a reason'}, {radikal:.05}],
+      [{de:'Lieber nicht', en:'Rather not'}, {radikal:-.3}]]},
+    {q:{de:'Humor', en:'Humour'}, h:{de:'Wie viel muss sein?', en:'How much do you need?'}, o:[
+      [{de:'Pointen, gern bissig', en:'Punchlines, the sharper the better'}, {lachen:.3, politik:.1, wort:.1}],
+      [{de:'Leise Ironie reicht', en:'Quiet irony is enough'}, {lachen:.05}],
+      [{de:'Darf komplett ernst sein', en:'Can be completely serious'}, {lachen:-.25}]]},
+    {q:{de:'Wie soll erzählt werden?', en:'How should the story be told?'}, h:{de:'', en:''}, o:[
+      [{de:'Klare Geschichte mit Figuren', en:'Clear story with characters'}, {wort:.15, radikal:-.2}],
+      [{de:'Bilder, Collage, Stimmung', en:'Images, collage, mood'}, {radikal:.25, koerper:.1, wort:-.1}]]},
+    {q:{de:'Federn, Glitzer, Akrobatik', en:'Feathers, glitter, acrobatics'}, h:{de:'', en:''}, o:[
+      [{de:'Ja bitte', en:'Yes please'}, {spektakel:.25, koerper:.15, lachen:.15}],
+      [{de:'Einmal im Jahr okay', en:'Once a year is fine'}, {}],
+      [{de:'Nicht meins', en:'Not for me'}, {spektakel:-.2, lachen:-.05}]]},
+    {q:{de:'Wenn plötzlich gesungen wird …', en:'When people suddenly start singing …'}, h:{de:'', en:''}, o:[
+      [{de:'bekomme ich Gänsehaut', en:'I get goosebumps'}, {musik:.3}],
+      [{de:'kommt drauf an', en:'it depends'}, {}],
+      [{de:'steige ich innerlich aus', en:'I tune out'}, {musik:-.35}]]}
+  ],
+  learnRate: .15,
+  storeKey: 'buehnenkompass-v1',
+  langKey: 'buehnenkompass-lang'
+};
+
+/* === SECTION: Texte (i18n) === */
+const I18N = {
+  de: {
+    skip:'Zum Inhalt springen', 'nav.label':'Hauptnavigation', 'nav.quiz':'Test', 'nav.profil':'Profil', 'nav.spielplan':'Spielplan', 'nav.tagebuch':'Tagebuch',
+    'menu.open':'Menü öffnen', 'menu.close':'Menü schließen', 'lang.label':'Sprache', newWin:'(öffnet neues Fenster)',
+    'start.tag':'24 Berliner Häuser, von Oper bis freie Szene', 'start.h1':'Was<br>spielst<br><span class="hl">du gern?</span>',
+    'start.lead':'Neun Fragen ohne Fachbegriffe. Danach weißt du, welche Art Theater du suchst, welche Häuser dazu passen und was dort in den nächsten Wochen läuft. Bewertest du gesehene Stücke im Tagebuch, wird die Empfehlung genauer.',
+    'start.how1':'Neun Entweder-oder-Fragen beantworten', 'start.how2':'Profil ansehen und bei Bedarf feinjustieren', 'start.how3':'Im Spielplan passende Vorstellungen der nächsten Wochen finden',
+    'start.cta':'Test starten', 'start.toProfile':'Zu meinem Profil',
+    'quiz.skip':'Überspringen', 'quiz.back':'Zurück', 'quiz.next':'Weiter', 'quiz.done':'Auswerten', 'quiz.count':'Frage {i} von {n}',
+    'prof.none.h':'Noch kein Profil', 'prof.none.p':'Mach zuerst den Test, dann erscheinen hier deine Empfehlungen.', 'prof.kicker':'Dein Theater-Profil', 'prof.dims':'Profil feinjustieren',
+    'prof.note':'Regler verschieben, wenn etwas nicht stimmt. Die Empfehlungen ändern sich sofort.', 'prof.recs':'Häuser, die zu dir passen', 'prof.recsSr':'Empfehlungen',
+    'prof.bb.p':'Den Gesamtspielplan aller Häuser mit Datumsfilter gibt es bei Berlin Bühnen.', 'prof.bb.a':'berlin-buehnen.de öffnen',
+    'prof.neutral':'neutral', 'prof.openTitle':'Offen für alles', 'prof.openText':'Deine Antworten zeigen keine klare Richtung. Das ist eine gute Ausgangslage: Probier die Empfehlungen quer durch und trag sie ins Tagebuch ein, dann schärft sich das Bild.',
+    'prof.strongest':'Am stärksten ausgeprägt: {x}. Darauf beruhen die Empfehlungen unten.',
+    'title.wort':'Text-Mensch', 'title.musik':'Klang-Mensch', 'title.koerper':'Bewegungs-Mensch', 'title.radikal':'Experiment-Fan', 'title.show':'Show-Liebhaberin', 'title.politik':'Debatten-Theater',
+    'fit.4':'Sehr hohe Passung', 'fit.3':'Hohe Passung', 'fit.2':'Mittlere Passung', 'fit.1':'Geringe Passung',
+    'card.rank':'Platz {n}: ', 'card.why':'Passt zu dir wegen', 'card.wild':'Ausreißer zum Testen', 'card.wildP':'Liegt außerhalb deines Profils. Gut, um herauszufinden, ob du etwas magst, das du noch nicht kennst.',
+    'card.ev1':'1 Vorstellung im Spielplan', 'card.evN':'{n} Vorstellungen im Spielplan', 'card.site':'Website des Hauses',
+    'plan.h':'Spielplan', 'plan.filter':'Spielplan filtern', 'plan.range':'Zeitraum', 'plan.r7':'7 Tage', 'plan.r28':'4 Wochen', 'plan.r0':'Alles', 'plan.typ':'Sparte', 'plan.typAll':'Alle Sparten',
+    'plan.typShow':'Musical & Show', 'plan.typPerf':'Performance & Figuren', 'plan.sort':'Sortieren', 'plan.sortFit':'Nach Passung', 'plan.sortDate':'Nach Datum',
+    'plan.stand':'Stand {d}', 'plan.old':'Daten älter als eine Woche', 'plan.noData':'Keine Spielplan-Daten geladen', 'plan.source':'Ticketkalender berlin.de',
+    'plan.introP':'Sortiert nach deinem Profil. Die Passung ergibt sich aus Haus und Sparte, nicht aus dem einzelnen Stück.', 'plan.introNo':'Mach den Test, dann sortiert sich der Spielplan nach deinem Geschmack.',
+    'plan.only':'Nur {h}', 'plan.allHouses':'Alle Häuser', 'plan.count1':'1 Vorstellung', 'plan.countN':'{n} Vorstellungen', 'plan.more':'{n} weitere Termine',
+    'plan.run':'läuft', 'plan.runSub':'weitere Termine', 'plan.runText':'Läuft bereits, weitere Termine', 'plan.noDesc':'Keine Beschreibung bei berlin.de.', 'plan.tickets':'Tickets & Termine',
+    'plan.empty':'Keine Vorstellungen für diese Auswahl. Zeitraum oder Sparte erweitern.', 'plan.gaps':'berlin.de zeigt pro Haus nur eine Auswahl. Den vollständigen Plan hat das jeweilige Haus.', 'plan.gapsNone':' Für diese Häuser gibt es dort gerade gar keine Termine:',
+    'plan.descDe':'', 'plan.at':'{t} Uhr',
+    'typ.schauspiel':'Schauspiel', 'typ.oper':'Oper', 'typ.tanz':'Tanz', 'typ.musical':'Musical', 'typ.show':'Show', 'typ.kabarett':'Kabarett & Comedy', 'typ.performance':'Performance', 'typ.gespraech':'Gespräch', 'typ.figuren':'Figurentheater',
+    'log.kicker':'Gesehen und bewertet', 'log.h':'Tagebuch', 'log.p':'Jede Bewertung verschiebt dein Profil ein Stück in Richtung des Hauses, das dir gefallen hat, und weg von dem, das nicht funktioniert hat.',
+    'log.house':'Haus', 'log.title':'Stück', 'log.optional':'(optional)', 'log.how':'Wie war es?', 'log.v1':'Mehr davon', 'log.v0':'Ganz okay', 'log.vm':'Nicht meins', 'log.submit':'Eintragen', 'log.sofar':'Bisher',
+    'log.choose':'Bitte wählen', 'log.untitled':'Ohne Titel', 'log.empty':'Noch keine Einträge.', 'log.needHouse':'Bitte ein Haus wählen.', 'log.needVerdict':'Bitte eine Bewertung wählen.',
+    'log.saved':'Eingetragen. Dein Profil wurde angepasst.', 'log.savedNoProfile':'Eingetragen. Mach den Test, damit Bewertungen dein Profil beeinflussen.',
+    'reset':'Profil und Tagebuch löschen', 'reset.confirm':'Wirklich löschen? Nochmal tippen', 'reset.done':'Alles gelöscht.',
+    footer:'Bühnenkompass Berlin 1.2 · Hausprofile sind redaktionelle Einschätzungen. Spielplan: Auswahl aus dem Ticketkalender von berlin.de. Profil und Tagebuch bleiben nur in diesem Browser.',
+    wd:['So','Mo','Di','Mi','Do','Fr','Sa'], wdLong:['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'],
+    mo:['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'], moLong:['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'], locale:'de-DE'
+  },
+  en: {
+    skip:'Skip to content', 'nav.label':'Main navigation', 'nav.quiz':'Quiz', 'nav.profil':'Profile', 'nav.spielplan':'What’s on', 'nav.tagebuch':'Diary',
+    'menu.open':'Open menu', 'menu.close':'Close menu', 'lang.label':'Language', newWin:'(opens in a new window)',
+    'start.tag':'24 Berlin stages, from opera to the independent scene', 'start.h1':'What<br>do you<br><span class="hl">enjoy?</span>',
+    'start.lead':'Nine questions, no jargon. Afterwards you know what kind of theatre you’re after, which stages fit and what’s on there in the coming weeks. Rate the plays you’ve seen in the diary and the recommendations get sharper.',
+    'start.how1':'Answer nine either-or questions', 'start.how2':'Check your profile and fine-tune it if needed', 'start.how3':'Find matching performances for the coming weeks',
+    'start.cta':'Start the quiz', 'start.toProfile':'Go to my profile',
+    'quiz.skip':'Skip', 'quiz.back':'Back', 'quiz.next':'Next', 'quiz.done':'See results', 'quiz.count':'Question {i} of {n}',
+    'prof.none.h':'No profile yet', 'prof.none.p':'Take the quiz first, then your recommendations appear here.', 'prof.kicker':'Your theatre profile', 'prof.dims':'Fine-tune your profile',
+    'prof.note':'Move the sliders if something feels off. The recommendations update straight away.', 'prof.recs':'Stages that suit you', 'prof.recsSr':'Recommendations',
+    'prof.bb.p':'The full programme of all stages, with a date filter, is on Berlin Bühnen.', 'prof.bb.a':'Open berlin-buehnen.de',
+    'prof.neutral':'neutral', 'prof.openTitle':'Open to anything', 'prof.openText':'Your answers don’t point in one direction. That’s a good starting point: try recommendations across the board and log them in the diary, and the picture gets clearer.',
+    'prof.strongest':'Most pronounced: {x}. The recommendations below are based on this.',
+    'title.wort':'Word person', 'title.musik':'Sound person', 'title.koerper':'Movement person', 'title.radikal':'Experiment fan', 'title.show':'Show lover', 'title.politik':'Debate theatre',
+    'fit.4':'Very strong match', 'fit.3':'Strong match', 'fit.2':'Medium match', 'fit.1':'Weak match',
+    'card.rank':'Rank {n}: ', 'card.why':'Matches you because of', 'card.wild':'Wildcard to try', 'card.wildP':'Sits outside your profile. A good way to find out whether you like something you don’t know yet.',
+    'card.ev1':'1 performance in What’s on', 'card.evN':'{n} performances in What’s on', 'card.site':'Venue website',
+    'plan.h':'What’s on', 'plan.filter':'Filter the programme', 'plan.range':'Time frame', 'plan.r7':'7 days', 'plan.r28':'4 weeks', 'plan.r0':'All', 'plan.typ':'Genre', 'plan.typAll':'All genres',
+    'plan.typShow':'Musical & show', 'plan.typPerf':'Performance & puppetry', 'plan.sort':'Sort', 'plan.sortFit':'By match', 'plan.sortDate':'By date',
+    'plan.stand':'As of {d}', 'plan.old':'data older than a week', 'plan.noData':'No programme data loaded', 'plan.source':'berlin.de ticket calendar',
+    'plan.introP':'Sorted by your profile. The match is based on venue and genre, not on the individual play.', 'plan.introNo':'Take the quiz and the programme sorts itself by your taste.',
+    'plan.only':'Only {h}', 'plan.allHouses':'All stages', 'plan.count1':'1 performance', 'plan.countN':'{n} performances', 'plan.more':'{n} more dates',
+    'plan.run':'running', 'plan.runSub':'more dates', 'plan.runText':'Already running, more dates', 'plan.noDesc':'No description on berlin.de.', 'plan.tickets':'Tickets & dates',
+    'plan.empty':'No performances for this selection. Widen the time frame or genre.', 'plan.gaps':'berlin.de shows only a selection per venue. The venue itself has the full programme.', 'plan.gapsNone':' These venues currently have no dates there at all:',
+    'plan.descDe':'(German description)', 'plan.at':'{t}',
+    'typ.schauspiel':'Drama', 'typ.oper':'Opera', 'typ.tanz':'Dance', 'typ.musical':'Musical', 'typ.show':'Show', 'typ.kabarett':'Cabaret & comedy', 'typ.performance':'Performance', 'typ.gespraech':'Talk', 'typ.figuren':'Puppetry',
+    'log.kicker':'Seen and rated', 'log.h':'Diary', 'log.p':'Each rating nudges your profile towards the venue you enjoyed and away from the one that didn’t work for you.',
+    'log.house':'Venue', 'log.title':'Play', 'log.optional':'(optional)', 'log.how':'How was it?', 'log.v1':'More like this', 'log.v0':'It was okay', 'log.vm':'Not for me', 'log.submit':'Add entry', 'log.sofar':'So far',
+    'log.choose':'Please choose', 'log.untitled':'Untitled', 'log.empty':'No entries yet.', 'log.needHouse':'Please choose a venue.', 'log.needVerdict':'Please choose a rating.',
+    'log.saved':'Added. Your profile has been adjusted.', 'log.savedNoProfile':'Added. Take the quiz so your ratings shape your profile.',
+    'reset':'Delete profile and diary', 'reset.confirm':'Really delete? Tap again', 'reset.done':'Everything deleted.',
+    footer:'Bühnenkompass Berlin 1.2 · Venue profiles are editorial assessments. What’s on: a selection from the berlin.de ticket calendar. Your profile and diary stay in this browser only.',
+    wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], wdLong:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+    mo:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], moLong:['January','February','March','April','May','June','July','August','September','October','November','December'], locale:'en-GB'
+  }
+};
+let lang = 'de';
+const T = (k, vars) => { let s = (I18N[lang][k] ?? I18N.de[k] ?? k); if(vars) for(const v in vars) s = s.replace('{'+v+'}', vars[v]); return s; };
+const L = o => (o && typeof o === 'object') ? (o[lang] ?? o.de) : o;
+
+/* === SECTION: State & Storage === */
+const store = {
+  load(){ try{ return JSON.parse(localStorage.getItem(CONFIG.storeKey)) || null }catch(e){ return null } },
+  save(s){ try{ localStorage.setItem(CONFIG.storeKey, JSON.stringify(s)) }catch(e){} },
+  clear(){ try{ localStorage.removeItem(CONFIG.storeKey) }catch(e){} }
+};
+let state = store.load() || {profile:null, answers:[], log:[]};
+let qi = 0;
+const $ = s => document.querySelector(s);
+const clamp = x => Math.max(0, Math.min(1, x));
+const keys = CONFIG.dims.map(d => d.k);
+const hv = h => Object.fromEntries(keys.map((k,i) => [k, h.v[i]]));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const arrow = '<svg class="ph" viewBox="0 0 256 256" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg>';
+const nw = () => '<span class="sr-only"> '+T('newWin')+'</span>';
+
+/* === SECTION: Scoring === */
+function profileFromAnswers(ans){
+  const p = Object.fromEntries(keys.map(k => [k, .5]));
+  ans.forEach((a, i) => { if(a == null) return; const d = CONFIG.quiz[i].o[a][1]; for(const k in d) p[k] = clamp(p[k] + d[k]); });
+  return p;
+}
+function score(p, h){
+  const v = hv(h); let s = 0, w = 0;
+  keys.forEach(k => { const wt = .4 + 2.4 * Math.abs(p[k] - .5); s += wt * (1 - Math.abs(p[k] - v[k])); w += wt; });
+  return s / w;
+}
+function reasons(p, h){
+  const v = hv(h);
+  return CONFIG.dims.map(d => ({d, strength:Math.abs(p[d.k]-.5), gap:Math.abs(p[d.k]-v[d.k])}))
+    .filter(x => x.strength > .12 && x.gap < .25)
+    .sort((a,b) => b.strength - a.strength).slice(0,3)
+    .map(x => L(p[x.d.k] > .5 ? x.d.hi : x.d.lo));
+}
+const form = v => ['wort','musik','koerper'].reduce((a,k) => v[k] > v[a] ? k : a, 'wort');
+const fitLabel = s => T(s > .84 ? 'fit.4' : s > .76 ? 'fit.3' : s > .68 ? 'fit.2' : 'fit.1');
+function summaryText(p){
+  const top = CONFIG.dims.map(d => ({d, x:p[d.k]-.5})).sort((a,b) => Math.abs(b.x) - Math.abs(a.x)).filter(t => Math.abs(t.x) > .1).slice(0,3);
+  if(!top.length) return {title:T('prof.openTitle'), text:T('prof.openText')};
+  let title = T('title.' + form(p));
+  if(p.radikal > .7) title = T('title.radikal'); else if(p.lachen > .75 && p.spektakel > .6) title = T('title.show'); else if(p.politik > .75) title = T('title.politik');
+  return {title, text:T('prof.strongest', {x: top.map(t => L(t.x > 0 ? t.d.hi : t.d.lo)).join(', ')})};
+}
+
+/* === SECTION: Sprache === */
+function applyLang(l, rerender){
+  lang = l === 'en' ? 'en' : 'de';
+  document.documentElement.lang = lang;
+  try{ localStorage.setItem(CONFIG.langKey, lang) }catch(e){}
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = T(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-html]').forEach(el => el.innerHTML = T(el.dataset.i18nHtml));
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', T(el.dataset.i18nAria)));
+  document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+  $('#resetAll').textContent = T('reset'); resetArmed = false;
+  $('#lHouse').innerHTML = '';
+  setBurgerLabel();
+  if(rerender) route(true);
+}
+document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => { if(b.dataset.lang !== lang) applyLang(b.dataset.lang, true); }));
+
+/* === SECTION: Router === */
+const views = ['start','quiz','profil','spielplan','tagebuch'];
+function route(keepFocus){
+  let v = location.hash.replace('#','');
+  if(!views.includes(v)) v = 'start';
+  document.querySelectorAll('[data-view]').forEach(s => s.classList.toggle('on', s.dataset.view === v));
+  document.querySelectorAll('[data-nav]').forEach(a => a.dataset.nav === v ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current'));
+  if(v === 'quiz') renderQ();
+  if(v === 'profil') renderProfile();
+  if(v === 'tagebuch') renderLog();
+  if(v === 'spielplan') renderPlan();
+  if(v !== 'spielplan' && v !== 'profil') planHouse = '';
+  if(v === 'start') $('#toProfile').hidden = !state.profile;
+  if(keepFocus === true) return;
+  window.scrollTo(0,0);
+  const h = document.querySelector('[data-view="'+v+'"] h1, [data-view="'+v+'"] h2:not([hidden]), [data-view="'+v+'"] legend');
+  if(h && document.activeElement !== document.body){ h.setAttribute('tabindex','-1'); h.focus({preventScroll:true}); }
+}
+window.addEventListener('hashchange', () => route());
+
+/* === SECTION: Quiz === */
+function renderQ(){
+  const q = CONFIG.quiz[qi], n = CONFIG.quiz.length;
+  $('#qCount').textContent = T('quiz.count', {i:qi+1, n});
+  $('#qBar').style.width = (qi / n * 100) + '%';
+  $('#q-legend').textContent = L(q.q);
+  $('#qHint').textContent = L(q.h); $('#qHint').hidden = !L(q.h);
+  const opts = $('#qOpts');
+  opts.className = 'opts' + (q.o.length === 2 || q.o.length === 4 ? ' two' : '');
+  opts.innerHTML = q.o.map((o,i) => '<div class="opt"><input type="radio" name="a" id="a'+i+'" value="'+i+'"'+(state.answers[qi]===i?' checked':'')+'><label for="a'+i+'">'+esc(L(o[0]))+'</label></div>').join('');
+  $('#qNext').disabled = state.answers[qi] == null;
+  $('#qNextLabel').textContent = T(qi === n-1 ? 'quiz.done' : 'quiz.next');
+  $('#qBack').disabled = qi === 0;
+}
+$('#qOpts').addEventListener('change', e => { state.answers[qi] = +e.target.value; $('#qNext').disabled = false; });
+$('#qForm').addEventListener('submit', e => { e.preventDefault(); next(); });
+$('#qSkip').addEventListener('click', () => { state.answers[qi] = null; next(); });
+$('#qBack').addEventListener('click', () => { if(qi > 0){ qi--; renderQ(); $('#q-legend').setAttribute('tabindex','-1'); $('#q-legend').focus(); } });
+function next(){
+  if(qi < CONFIG.quiz.length - 1){ qi++; renderQ(); $('#q-legend').setAttribute('tabindex','-1'); $('#q-legend').focus(); return; }
+  state.profile = profileFromAnswers(state.answers);
+  state.log.slice().reverse().forEach(en => learn(en.house, en.verdict));
+  store.save(state); qi = 0; location.hash = 'profil';
+}
+$('#startBtn').addEventListener('click', () => { qi = 0; });
+
+/* === SECTION: Profil === */
+const desc = (d, x) => x < .3 ? L(d.lo) : x > .7 ? L(d.hi) : T('prof.neutral');
+function renderProfile(){
+  const has = !!state.profile;
+  $('#noProfile').hidden = has; $('#hasProfile').hidden = !has;
+  if(!has) return;
+  const p = state.profile, sm = summaryText(p);
+  $('#h-profil').textContent = sm.title;
+  $('#pSummary').textContent = sm.text;
+  $('#dims').innerHTML = CONFIG.dims.map(d => {
+    const t = desc(d, p[d.k]);
+    return '<div class="dim"><label for="r-'+d.k+'">'+esc(L(d.l))+' <output id="o-'+d.k+'" for="r-'+d.k+'">'+esc(t)+'</output></label><input type="range" id="r-'+d.k+'" data-k="'+d.k+'" min="0" max="100" value="'+Math.round(p[d.k]*100)+'" aria-valuetext="'+esc(t)+'"></div>';
+  }).join('');
+  renderRecs();
+}
+$('#dims').addEventListener('input', e => {
+  const k = e.target.dataset.k; if(!k) return;
+  const d = CONFIG.dims.find(x => x.k === k);
+  state.profile[k] = e.target.value / 100;
+  const t = desc(d, state.profile[k]);
+  $('#o-'+k).textContent = t; e.target.setAttribute('aria-valuetext', t);
+  store.save(state); renderRecs();
+  const sm = summaryText(state.profile); $('#h-profil').textContent = sm.title; $('#pSummary').textContent = sm.text;
+});
+function card(h, s, rank, p, wild){
+  const r = reasons(p, h), n = nEv(h.id);
+  return '<li class="card'+(wild?' wild':'')+'">'
+    + (rank ? '<span class="rank" aria-hidden="true">'+rank+'</span>' : '')
+    + (wild ? '<span class="wild-tag">'+T('card.wild')+'</span>' : '')
+    + '<h3>'+(rank?'<span class="sr-only">'+T('card.rank',{n:rank})+'</span>':'')+esc(h.n)+'</h3>'
+    + '<p class="meta">'+esc(L(h.typ))+' · '+esc(h.ort)+'</p>'
+    + '<div class="fit"><span class="m" aria-hidden="true"><i style="width:'+Math.round(s*100)+'%"></i></span>'+fitLabel(s)+'</div>'
+    + '<p>'+esc(L(h.d))+'</p>'
+    + (wild ? '<p style="color:var(--muted);font-size:.9rem">'+T('card.wildP')+'</p>' : '')
+    + (r.length ? '<ul class="why" aria-label="'+T('card.why')+'">'+r.map(x => '<li>'+esc(x)+'</li>').join('')+'</ul>' : '')
+    + '<div class="links">'
+    + (n ? '<a class="ext" href="#spielplan" data-house="'+h.id+'">'+(n === 1 ? T('card.ev1') : T('card.evN',{n}))+'</a>' : '')
+    + '<a class="ext" href="'+h.url+'" target="_blank" rel="noopener">'+T('card.site')+' '+arrow+nw()+'</a></div></li>';
+}
+function renderRecs(){
+  const p = state.profile;
+  const ranked = CONFIG.houses.map(h => ({h, s:score(p,h)})).sort((a,b) => b.s - a.s);
+  $('#recs').innerHTML = ranked.slice(0,5).map((x,i) => card(x.h, x.s, i+1, p, false)).join('');
+  const myForm = form(p);
+  const w = ranked.slice(5).find(x => form(hv(x.h)) !== myForm);
+  $('#wild').innerHTML = w ? '<ul class="list" style="margin-bottom:0">'+card(w.h, w.s, 0, p, true)+'</ul>' : '';
+}
+
+/* === SECTION: Spielplan === */
+const PLAN = window.SPIELPLAN || {events:[], ohneDaten:[], stand:null};
+const TYPV = {
+  schauspiel:{wort:.9}, oper:{musik:1, wort:.1, koerper:.2}, tanz:{koerper:1, wort:0}, musical:{musik:.9, lachen:.6, spektakel:.7},
+  show:{spektakel:.8, koerper:.7, lachen:.65, wort:.1}, kabarett:{lachen:.9, wort:.7, spektakel:.2}, performance:{radikal:.9},
+  gespraech:{wort:.8, politik:.9, spektakel:0, musik:0, koerper:0, lachen:.2}, figuren:{radikal:.75, koerper:.5}
+};
+let planHouse = '', sortTouched = false;
+const houseById = id => CONFIG.houses.find(h => h.id === id);
+function nEv(id){ return visibleEvents().filter(e => e.h === id).length; }
+function berlinTime(iso){ const m = +iso.slice(5,7); return Date.parse(iso + ':00' + (m >= 4 && m <= 10 ? '+02:00' : '+01:00')); }
+function evScore(p, e){
+  const h = houseById(e.h); if(!h) return 0;
+  const v = Object.assign(hv(h), TYPV[e.typ] || {});
+  return score(p, {v: keys.map(k => v[k])});
+}
+function visibleEvents(){
+  const now = Date.now();
+  return PLAN.events.map(e => { const t = berlinTime(e.next); return Object.assign({}, e, {time:t, running: t < now}); })
+    .filter(e => houseById(e.h) && !(e.running && !e.more));
+}
+function ymd(e){ return {y:+e.next.slice(0,4), m:+e.next.slice(5,7), d:+e.next.slice(8,10)}; }
+function dateBlock(e){
+  if(e.running) return '<div class="date run" aria-hidden="true"><b>'+T('plan.run')+'</b><span>'+T('plan.runSub')+'</span></div>';
+  const {y,m,d} = ymd(e), wd = T('wd')[new Date(Date.UTC(y,m-1,d)).getUTCDay()];
+  return '<div class="date" aria-hidden="true"><span>'+wd+'</span><b>'+d+'.</b><span>'+T('mo')[m-1]+' · '+e.next.slice(11,16)+'</span></div>';
+}
+function dateText(e){
+  if(e.running) return T('plan.runText');
+  const {y,m,d} = ymd(e), wd = T('wdLong')[new Date(Date.UTC(y,m-1,d)).getUTCDay()];
+  return lang === 'de' ? wd+', '+d+'. '+T('moLong')[m-1]+', '+T('plan.at',{t:e.next.slice(11,16)}) : wd+' '+d+' '+T('moLong')[m-1]+', '+e.next.slice(11,16);
+}
+function renderPlan(){
+  const p = state.profile;
+  const stand = PLAN.stand ? new Date(PLAN.stand + 'T12:00:00') : null;
+  const old = stand && (Date.now() - stand) > 10 * 86400000;
+  $('#planStand').textContent = stand ? T('plan.stand',{d: stand.toLocaleDateString(T('locale'), {day:'numeric', month:'long', year:'numeric'})}) + ' · ' + T('plan.source') + (old ? ' · ' + T('plan.old') : '') : T('plan.noData');
+  $('#planIntro').textContent = T(p ? 'plan.introP' : 'plan.introNo');
+  $('#pSort').disabled = !p;
+  if(!p) $('#pSort').value = 'date'; else if(!sortTouched) $('#pSort').value = 'fit';
+  const range = +document.querySelector('input[name=range]:checked').value;
+  const typ = $('#pTyp').value ? $('#pTyp').value.split(',') : null;
+  const now = Date.now();
+  const list = visibleEvents().filter(e => (!planHouse || e.h === planHouse) && (!typ || typ.includes(e.typ)) && (!range || e.running || (e.time - now) <= range * 86400000));
+  list.forEach(e => e.s = p ? evScore(p, e) : 0);
+  const byDate = (a,b) => (a.running ? now : a.time) - (b.running ? now : b.time);
+  list.sort(p && $('#pSort').value === 'fit' ? (a,b) => (b.s - a.s) || byDate(a,b) : byDate);
+  const hh = planHouse && houseById(planHouse);
+  $('#houseChip').innerHTML = hh ? '<span class="hchip">'+esc(T('plan.only',{h:hh.n}))+' <button type="button" id="clearHouse">'+T('plan.allHouses')+'</button></span>' : '';
+  $('#planCount').textContent = list.length === 1 ? T('plan.count1') : T('plan.countN',{n:list.length});
+  $('#planList').innerHTML = list.length ? list.map(e => {
+    const h = houseById(e.h);
+    const txt = lang === 'en' ? (e.e || e.d) : e.d;
+    const deFallback = lang === 'en' && !e.e && e.d;
+    return '<li class="ev">' + dateBlock(e)
+      + '<div><h3>'+esc(e.t)+'</h3>'
+      + '<p class="meta"><span class="sr-only">'+dateText(e)+'. </span>'+esc(h.n)+' · '+esc(T('typ.'+e.typ))+(e.more ? ' · '+T('plan.more',{n:e.more}) : '')+'</p>'
+      + (txt ? '<p'+(deFallback ? ' lang="de"' : '')+'>'+esc(txt)+'</p>' : '<p style="color:var(--muted)">'+T('plan.noDesc')+'</p>')
+      + (p ? '<div class="fit"><span class="m" aria-hidden="true"><i style="width:'+Math.round(e.s*100)+'%"></i></span>'+fitLabel(e.s)+'</div>' : '')
+      + '<div class="links"><a class="planlink ext" href="'+esc(e.url)+'" target="_blank" rel="noopener">'+T('plan.tickets')+' '+arrow+nw()+'</a>'
+      + '<a class="planlink" href="'+h.url+'" target="_blank" rel="noopener">'+T('card.site')+nw()+'</a></div>'
+      + '</div></li>';
+  }).join('') : '<li class="empty">'+T('plan.empty')+'</li>';
+  const gaps = (PLAN.ohneDaten || []).map(houseById).filter(Boolean);
+  $('#planGaps').innerHTML = '<p style="margin-bottom:10px">'+T('plan.gaps')+(gaps.length ? T('plan.gapsNone') : '')+'</p>'
+    + (gaps.length ? '<ul class="why">'+gaps.map(h => '<li><a href="'+h.url+'" target="_blank" rel="noopener">'+esc(h.n)+nw()+'</a></li>').join('')+'</ul>' : '');
+}
+document.querySelectorAll('input[name=range]').forEach(r => r.addEventListener('change', renderPlan));
+$('#pTyp').addEventListener('change', renderPlan);
+$('#pSort').addEventListener('change', () => { sortTouched = true; renderPlan(); });
+$('#houseChip').addEventListener('click', e => { if(e.target.id === 'clearHouse'){ planHouse = ''; renderPlan(); $('#h-plan').focus(); } });
+document.addEventListener('click', e => { const a = e.target.closest('[data-house]'); if(a){ planHouse = a.dataset.house; $('#r0').checked = true; } });
+
+/* === SECTION: Tagebuch === */
+function learn(id, verdict){
+  const h = houseById(id); if(!h || !state.profile || verdict === 0) return;
+  const v = hv(h), lr = CONFIG.learnRate * (verdict > 0 ? 1 : -.6);
+  keys.forEach(k => { state.profile[k] = clamp(state.profile[k] + lr * (v[k] - state.profile[k])); });
+}
+function renderLog(){
+  const sel = $('#lHouse');
+  if(!sel.options.length) sel.innerHTML = '<option value="">'+T('log.choose')+'</option>' + CONFIG.houses.slice().sort((a,b) => a.n.localeCompare(b.n,'de')).map(h => '<option value="'+h.id+'">'+esc(h.n)+'</option>').join('');
+  const labels = {'1':T('log.v1'),'0':T('log.v0'),'-1':T('log.vm')};
+  $('#entries').innerHTML = state.log.length
+    ? state.log.map(en => { const h = houseById(en.house); return '<li><span><strong>'+esc(en.title || T('log.untitled'))+'</strong><br><span style="color:var(--muted);font-size:.88rem">'+esc(h ? h.n : '')+' · '+esc(en.date)+'</span></span><span class="v">'+labels[en.verdict]+'</span></li>'; }).join('')
+    : '<li class="empty">'+T('log.empty')+'</li>';
+}
+$('#logForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const house = $('#lHouse').value, vEl = document.querySelector('input[name=verdict]:checked'), st = $('#logStatus');
+  if(!house){ st.textContent = T('log.needHouse'); $('#lHouse').focus(); return; }
+  if(!vEl){ st.textContent = T('log.needVerdict'); $('#v1').focus(); return; }
+  const verdict = +vEl.value;
+  state.log.unshift({house, title:$('#lTitle').value.trim(), verdict, date:new Date().toLocaleDateString(T('locale'))});
+  learn(house, verdict); store.save(state);
+  e.target.reset(); renderLog();
+  st.textContent = T(state.profile ? 'log.saved' : 'log.savedNoProfile');
+});
+let resetArmed = false;
+$('#resetAll').addEventListener('click', e => {
+  if(!resetArmed){ resetArmed = true; e.target.textContent = T('reset.confirm'); return; }
+  state = {profile:null, answers:[], log:[]}; store.clear(); resetArmed = false;
+  e.target.textContent = T('reset'); renderLog(); $('#resetStatus').textContent = T('reset.done');
+});
+
+/* === SECTION: Menü & Kopfzeile === */
+const burger = $('#burger'), menu = $('#mainnav'), headerEl = $('#top');
+const isDesktop = () => window.matchMedia('(min-width:760px)').matches;
+function setBurgerLabel(){ burger.setAttribute('aria-label', T(burger.getAttribute('aria-expanded') === 'true' ? 'menu.close' : 'menu.open')); }
+function setMenu(open, focusBack){
+  if(isDesktop()) open = false;
+  burger.setAttribute('aria-expanded', String(open));
+  setBurgerLabel();
+  menu.hidden = !open && !isDesktop();
+  headerEl.classList.toggle('full', open || window.scrollY > 8);
+  if(open){ (menu.querySelector('[aria-current="page"]') || menu.querySelector('a')).focus(); }
+  else if(focusBack) burger.focus();
+}
+burger.addEventListener('click', () => setMenu(burger.getAttribute('aria-expanded') !== 'true'));
+menu.addEventListener('click', e => { if(e.target.closest('a')) setMenu(false); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && burger.getAttribute('aria-expanded') === 'true') setMenu(false, true); });
+document.addEventListener('click', e => { if(burger.getAttribute('aria-expanded') === 'true' && !headerEl.contains(e.target)) setMenu(false); });
+window.addEventListener('scroll', () => headerEl.classList.toggle('full', window.scrollY > 8 || burger.getAttribute('aria-expanded') === 'true'), {passive:true});
+window.matchMedia('(min-width:760px)').addEventListener('change', () => setMenu(false));
+
+/* === SECTION: Start === */
+let initialLang = 'de';
+try{ initialLang = localStorage.getItem(CONFIG.langKey) || ((navigator.language || 'de').toLowerCase().startsWith('de') ? 'de' : 'en'); }catch(e){}
+applyLang(initialLang, false);
+setMenu(false);
+route();
+</script>
+</body>
+</html>
